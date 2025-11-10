@@ -28,6 +28,7 @@ export default function Chat() {
   const [messagesByRoom, setMessagesByRoom] = useState({});
   const [newRoom, setNewRoom] = useState("");
   const [roomDialogOpen, setRoomDialogOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const chatEndRef = useRef(null);
 
@@ -108,7 +109,7 @@ export default function Chat() {
       .catch(console.error);
   }, [currentRoom, socket, username]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!message.trim() || !socket || !currentRoom) return;
 
     const msgData = {
@@ -118,11 +119,11 @@ export default function Chat() {
       timestamp: new Date().toISOString(),
     };
 
+    setIsSending(true);
     socket.emit("send_message", msgData);
-    // setMessagesByRoom((prev) => ({
-    //   ...prev,
-    //   [currentRoom]: [...(prev[currentRoom] || []), msgData],
-    // }));
+
+    // simulate small delay for UX
+    setTimeout(() => setIsSending(false), 400);
     setMessage("");
   };
 
@@ -351,8 +352,12 @@ export default function Chat() {
               placeholder="Type a message..."
               onKeyDown={(e) => handleKeyDown("message", e)}
             />
-            <Button variant="contained" onClick={sendMessage}>
-              Send
+            <Button
+              variant="contained"
+              onClick={sendMessage}
+              disabled={isSending || !message.trim()}
+            >
+              {isSending ? "Sending..." : "Send"}
             </Button>
           </Stack>
         )}
