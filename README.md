@@ -1,0 +1,1 @@
+echo "# React + Flask Chat App" > README.md
