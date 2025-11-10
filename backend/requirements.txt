@@ -26,7 +26,8 @@ flask_sqlalchemy
 flask_cors
 flask_socketio
 flask_jwt_extended
-eventlet
+gevent
+gevent-websocket
 gunicorn
 python-dotenv
 psycopg2
