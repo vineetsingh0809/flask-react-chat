@@ -72,7 +72,6 @@ export default function Chat() {
     });
 
     s.on("system_message", (data) => {
-      console.log(data);
       setMessagesByRoom((prev) => {
         const msgs = prev[data.room] || [];
         return {
@@ -100,7 +99,6 @@ export default function Chat() {
     if (!currentRoom) return;
     API.get(`/messages/${encodeURIComponent(currentRoom)}`)
       .then((res) => {
-        console.log(res);
         setMessagesByRoom((prev) => ({
           ...prev,
           [currentRoom]: res.data,
@@ -141,10 +139,23 @@ export default function Chat() {
     }
   };
 
+  const handleKeyDown = (type, e) => {
+    if (type === "message") {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    } else {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleAddRoom();
+      }
+    }
+  };
+
   const startDM = async (otherUser) => {
     const dmRoom = `dm:${[username, otherUser].sort().join(":")}`;
     setCurrentRoom(dmRoom);
-    if (!rooms.includes(dmRoom)) setRooms((prev) => [...prev, dmRoom]);
 
     try {
       const res = await API.get(`/messages/${encodeURIComponent(dmRoom)}`);
@@ -188,7 +199,6 @@ export default function Chat() {
           {rooms.map((room) => (
             <ListItem
               key={room}
-              button
               selected={room === currentRoom}
               onClick={() => setCurrentRoom(room)}
               sx={{
@@ -212,16 +222,29 @@ export default function Chat() {
           Direct Messages
         </Typography>
         <List dense sx={{ flexGrow: 1, overflowY: "auto" }}>
-          {users.map((user) => (
-            <ListItem
-              key={user}
-              button
-              onClick={() => startDM(user)}
-              sx={{ borderRadius: 1 }}
-            >
-              <ListItemText primary={user} />
-            </ListItem>
-          ))}
+          {users.map((user) => {
+            const dmRoom = `dm:${[username, user].sort().join(":")}`;
+            const isSelected = currentRoom === dmRoom;
+
+            return (
+              <ListItem
+                key={user}
+                onClick={() => startDM(user)}
+                selected={isSelected}
+                sx={{
+                  borderRadius: 1,
+                  cursor: "pointer",
+                  "&.Mui-selected": {
+                    bgcolor: "primary.light",
+                    color: "white",
+                  },
+                  backgroundColor: isSelected ? "#dcdcdc" : "#ffffff",
+                }}
+              >
+                <ListItemText primary={user} />
+              </ListItem>
+            );
+          })}
         </List>
 
         <Button
@@ -242,8 +265,14 @@ export default function Chat() {
         bgcolor="#dfe6e9"
       >
         <Typography variant="h6" mb={1}>
-          {currentRoom ? currentRoom.replace("dm:", "") : "Select a room"}
+          {currentRoom?.startsWith("dm:")
+            ? `Chat with ${currentRoom
+                .replace("dm:", "")
+                .replace(username, "")
+                .replace(":", "")}`
+            : currentRoom || "Select a room"}
         </Typography>
+
         <Divider />
 
         {/* Chat messages */}
@@ -270,8 +299,6 @@ export default function Chat() {
               minute: "2-digit",
               hour12: true,
             });
-
-            console.log(time);
 
             return (
               <Box
@@ -322,6 +349,7 @@ export default function Chat() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type a message..."
+              onKeyDown={(e) => handleKeyDown("message", e)}
             />
             <Button variant="contained" onClick={sendMessage}>
               Send
@@ -340,6 +368,7 @@ export default function Chat() {
             margin="dense"
             value={newRoom}
             onChange={(e) => setNewRoom(e.target.value)}
+            onKeyDown={(e) => handleKeyDown("room", e)}
           />
         </DialogContent>
         <DialogActions>
