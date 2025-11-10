@@ -16,7 +16,7 @@ app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "jwt-secret")
 
 db = SQLAlchemy(app)
 CORS(app, supports_credentials=True, origins="*")
-socketio = SocketIO(app, cors_allowed_origins="*", manage_session=False)
+socketio = SocketIO(app, cors_allowed_origins=["*","https://flask-react-chat.onrender.com"], async_mode="gevent", manage_session=False)
 jwt = JWTManager(app)
 
 
