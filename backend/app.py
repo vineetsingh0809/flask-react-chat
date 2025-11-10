@@ -243,16 +243,24 @@ def on_send(data):
 
 
 # --------- Serve React build (optional if hosted together) ----------
+# @app.route("/", defaults={"path": ""})
+# @app.route("/<path:path>")
+# def serve(path):
+#     root_dir = os.path.join(os.getcwd(), "../frontend/build")
+#     if path != "" and os.path.exists(os.path.join(root_dir, path)):
+#         return send_from_directory(root_dir, path)
+#     else:
+#         return send_from_directory(root_dir, "index.html")
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
-def serve(path):
-    root_dir = os.path.join(os.getcwd(), "../frontend/build")
-    if path != "" and os.path.exists(os.path.join(root_dir, path)):
-        return send_from_directory(root_dir, path)
+def serve_frontend(path):
+    if path != "" and os.path.exists(f"../frontend/build/{path}"):
+        return send_from_directory("../frontend/build", path)
     else:
-        return send_from_directory(root_dir, "index.html")
+        return send_from_directory("../frontend/build", "index.html")
+
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    socketio.run(app, host="0.0.0.0", port=port, debug=True)
+    socketio.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
